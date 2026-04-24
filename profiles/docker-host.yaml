@@ -1,0 +1,14 @@
+description: Docker host — nginx-less, Docker CE, UFW, hardened SSH.
+modules:
+  - timezone:
+      tz: Asia/Shanghai
+  - mirror:
+      provider: aliyun
+  - base:
+      web: false
+  - swap:
+      size: 4G
+  - firewall: {}
+  - fail2ban: {}
+  - ssh-hardening: {}
+  - docker: {}

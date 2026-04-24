@@ -1,0 +1,14 @@
+description: Web VPS + Node.js toolchain (nvm, pnpm, pm2) for hosting Node apps.
+modules:
+  - timezone:
+      tz: Asia/Shanghai
+  - mirror:
+      provider: aliyun
+  - base: {}
+  - swap:
+      size: 2G
+  - firewall: {}
+  - fail2ban: {}
+  - ssh-hardening: {}
+  - node:
+      version: lts

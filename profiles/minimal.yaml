@@ -1,0 +1,10 @@
+description: Minimal, safe bootstrap. No firewall changes, no SSH hardening.
+modules:
+  - timezone:
+      tz: Asia/Shanghai
+  - mirror:
+      provider: aliyun
+  - base:
+      web: false
+  - swap:
+      size: 2G

@@ -1,0 +1,12 @@
+description: Full web VPS in China/HK — nginx, certbot, firewall, fail2ban, hardened SSH.
+modules:
+  - timezone:
+      tz: Asia/Shanghai
+  - mirror:
+      provider: aliyun
+  - base: {}
+  - swap:
+      size: 2G
+  - firewall: {}
+  - fail2ban: {}
+  - ssh-hardening: {}
