@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-VI_VERSION="0.1.1"
+VI_VERSION="0.1.2"
 VI_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")/.." && pwd)"
 VI_LIB="$VI_ROOT/lib"
 VI_PROFILES_DIR_DEFAULT="$VI_ROOT/profiles"

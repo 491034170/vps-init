@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.1.2] — workflow release
 
 ### Added
 - `apply <profile>` accepts `--only a,b,c` and `--skip x,y` filters so you
