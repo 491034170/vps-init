@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.1.3] — database modules
+
+### Added
+- `postgres` module — installs PostgreSQL from the official PGDG APT repo
+  (not the distro-packaged one, which lags). Drops a tuned
+  `conf.d/10-vps-init.conf` with small-VPS defaults (`shared_buffers=256M`,
+  `effective_cache_size=768M`, aggressive `work_mem` sizing, `wal` ratios,
+  `Asia/Shanghai` tz). `pg_hba` locks auth to `peer` (local socket) and
+  `scram-sha-256` (localhost TCP) — nothing listens on the public IP.
+  Optional `--create-user <name>` generates a random password and writes
+  it to `/root/.pg-<name>-password` (0600). `--create-db <name>` creates
+  a UTF-8 database owned by the created user.
+- `mysql` module — MySQL 8 from the distro (or `--mariadb` to install
+  MariaDB instead). Tuned `conf.d/10-vps-init.cnf` with
+  `innodb_buffer_pool_size=256M`, `bind-address=127.0.0.1`, `utf8mb4`
+  defaults. Runs the standard "remove anonymous users / test db / remote
+  root" hardening steps idempotently. Same `--create-user`/`--create-db`
+  flow as the postgres module.
+- New built-in profile `saas-pg` — `web-cn` + Node + PostgreSQL. The
+  common shape for a single-box SaaS MVP.
+
+### Notes
+- Both DB modules default to small-VPS tuning; drop your own
+  `/etc/<pg|mysql>/conf.d/99-your-overrides.conf` with higher numeric
+  prefix to win.
+- Neither module opens DB ports to the public internet. Use an SSH
+  tunnel (`ssh -L 5432:localhost:5432 vps`) for remote access.
+
 ## [0.1.2] — workflow release
 
 ### Added

@@ -1,0 +1,15 @@
+description: SaaS VPS — web-cn + PostgreSQL. Common shape for a single-box SaaS MVP.
+modules:
+  - timezone:
+      tz: Asia/Shanghai
+  - mirror:
+      provider: aliyun
+  - base: {}
+  - swap:
+      size: 4G
+  - firewall: {}
+  - fail2ban: {}
+  - ssh-hardening: {}
+  - node:
+      version: lts
+  - postgres: {}

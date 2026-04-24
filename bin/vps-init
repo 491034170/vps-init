@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-VI_VERSION="0.1.2"
+VI_VERSION="0.1.3"
 VI_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")/.." && pwd)"
 VI_LIB="$VI_ROOT/lib"
 VI_PROFILES_DIR_DEFAULT="$VI_ROOT/profiles"
@@ -45,6 +45,12 @@ Commands:
                                       --copy-key-from <user>, --sudo-nopasswd.
   node [lts|20|18]             Install Node via nvm + pnpm + pm2.
   docker                       Install Docker CE from the official repo.
+  postgres [flags]             Install PostgreSQL from the PGDG repo.
+                               Flags: --version 16, --create-user app,
+                                      --create-db myapp.
+  mysql [flags]                Install MySQL 8 (or MariaDB with --mariadb).
+                               Flags: --mariadb, --create-user app,
+                                      --create-db myapp.
   list                         List built-in profiles and modules.
   doctor                       Summarize the current state of the box.
   version                      Print version.
@@ -156,6 +162,18 @@ case "$cmd" in
     # shellcheck source=lib/docker.sh
     source "$VI_LIB/docker.sh"
     vi_cmd_docker "$@"
+    ;;
+  postgres|pg)
+    require_root
+    # shellcheck source=lib/postgres.sh
+    source "$VI_LIB/postgres.sh"
+    vi_cmd_postgres "$@"
+    ;;
+  mysql|mariadb)
+    require_root
+    # shellcheck source=lib/mysql.sh
+    source "$VI_LIB/mysql.sh"
+    vi_cmd_mysql "$@"
     ;;
   doctor)
     # shellcheck source=lib/doctor.sh

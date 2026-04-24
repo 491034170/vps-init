@@ -36,6 +36,14 @@ vi_cmd_list() {
                        --sudo-nopasswd     skip password prompt for sudo
   node [lts|20|18]   via nvm + pnpm + pm2
   docker             Docker CE from upstream repo
+  postgres           PostgreSQL from PGDG repo, small-VPS-tuned conf.d
+                       --version 16         pin major version (default 16)
+                       --create-user app    create login role + write pw file
+                       --create-db myapp    create database (owner = create-user if set)
+  mysql              MySQL 8 (or MariaDB with --mariadb), small-VPS-tuned
+                       --mariadb            install MariaDB instead of MySQL
+                       --create-user app    create user + write pw file
+                       --create-db myapp    create database + grant to create-user
   doctor             summary of current state
 EOF
 }
