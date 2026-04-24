@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+#
+# vps-init — opinionated, idempotent Ubuntu/Debian bootstrap tuned for
+# China-mainland and Hong Kong VPS scenarios.
+#
+# Usage:
+#   sudo vps-init apply <profile>     # run a profile end-to-end
+#   sudo vps-init <module> [args]     # run one module in isolation
+#   vps-init list                     # list built-in profiles and modules
+#   vps-init --help
+#
+# Profiles live in ./profiles/*.yaml (or /etc/vps-init/profiles/).
+
+set -euo pipefail
+
+VI_VERSION="0.1.0"
+VI_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")/.." && pwd)"
+VI_LIB="$VI_ROOT/lib"
+VI_PROFILES_DIR_DEFAULT="$VI_ROOT/profiles"
+VI_PROFILES_DIR_SYSTEM="/etc/vps-init/profiles"
+
+: "${VI_DRY_RUN:=0}"
+: "${VI_ASSUME_YES:=0}"
+
+# shellcheck source=lib/common.sh
+source "$VI_LIB/common.sh"
+
+usage() {
+  cat <<'EOF'
+vps-init — Ubuntu / Debian VPS bootstrap with China-region defaults.
+
+Commands:
+  apply <profile>              Run a profile end-to-end.
+  mirror [aliyun|tuna|ustc]    Switch apt sources to a China mirror.
+  base                         Install base tools (nginx, git, jq, htop, ...).
+  swap <size>                  Add a swap file (e.g. 2G, 4G).
+  timezone <tz>                Set system timezone (default Asia/Shanghai).
+  firewall                     Enable UFW with web + ssh default policy.
+  fail2ban                     Install & enable fail2ban with sane ssh jail.
+  ssh-hardening                Disable root password login; enforce key-only.
+  node [lts|20|18]             Install Node via nvm + pnpm + pm2.
+  docker                       Install Docker CE from the official repo.
+  list                         List built-in profiles and modules.
+  doctor                       Summarize the current state of the box.
+  version                      Print version.
+
+Flags:
+  --dry-run        Print actions without executing.
+  --yes            Skip confirmation prompts.
+  --profile-dir    Override profile directory.
+
+All module commands are idempotent. You can re-run them safely.
+
+Docs: https://github.com/491034170/vps-init
+EOF
+}
+
+parse_global() {
+  local remaining=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dry-run)       VI_DRY_RUN=1; shift ;;
+      --yes|-y)        VI_ASSUME_YES=1; shift ;;
+      --profile-dir)   VI_PROFILES_DIR_OVERRIDE="${2:?}"; shift 2 ;;
+      --help|-h)       usage; exit 0 ;;
+      --version|-v)    echo "vps-init $VI_VERSION"; exit 0 ;;
+      --)              shift; remaining+=("$@"); break ;;
+      *)               remaining+=("$1"); shift ;;
+    esac
+  done
+  VI_ARGS=("${remaining[@]}")
+}
+
+parse_global "$@"
+set -- "${VI_ARGS[@]:-}"
+
+cmd="${1:-help}"
+shift || true
+
+# Most commands must run as root.
+require_root() {
+  if [[ "${EUID}" -ne 0 ]]; then
+    vi_err "this command must run as root (try: sudo $(basename "$0") $cmd ...)"
+    exit 1
+  fi
+}
+
+case "$cmd" in
+  apply)
+    require_root
+    # shellcheck source=lib/apply.sh
+    source "$VI_LIB/apply.sh"
+    vi_cmd_apply "$@"
+    ;;
+  mirror)
+    require_root
+    # shellcheck source=lib/mirror.sh
+    source "$VI_LIB/mirror.sh"
+    vi_cmd_mirror "$@"
+    ;;
+  base)
+    require_root
+    # shellcheck source=lib/base.sh
+    source "$VI_LIB/base.sh"
+    vi_cmd_base "$@"
+    ;;
+  swap)
+    require_root
+    # shellcheck source=lib/swap.sh
+    source "$VI_LIB/swap.sh"
+    vi_cmd_swap "$@"
+    ;;
+  timezone)
+    require_root
+    # shellcheck source=lib/timezone.sh
+    source "$VI_LIB/timezone.sh"
+    vi_cmd_timezone "$@"
+    ;;
+  firewall)
+    require_root
+    # shellcheck source=lib/firewall.sh
+    source "$VI_LIB/firewall.sh"
+    vi_cmd_firewall "$@"
+    ;;
+  fail2ban)
+    require_root
+    # shellcheck source=lib/fail2ban.sh
+    source "$VI_LIB/fail2ban.sh"
+    vi_cmd_fail2ban "$@"
+    ;;
+  ssh-hardening|ssh)
+    require_root
+    # shellcheck source=lib/ssh.sh
+    source "$VI_LIB/ssh.sh"
+    vi_cmd_ssh "$@"
+    ;;
+  node)
+    # Node install is user-scope (nvm), no root strictly required.
+    # shellcheck source=lib/node.sh
+    source "$VI_LIB/node.sh"
+    vi_cmd_node "$@"
+    ;;
+  docker)
+    require_root
+    # shellcheck source=lib/docker.sh
+    source "$VI_LIB/docker.sh"
+    vi_cmd_docker "$@"
+    ;;
+  doctor)
+    # shellcheck source=lib/doctor.sh
+    source "$VI_LIB/doctor.sh"
+    vi_cmd_doctor "$@"
+    ;;
+  list)
+    # shellcheck source=lib/list.sh
+    source "$VI_LIB/list.sh"
+    vi_cmd_list "$@"
+    ;;
+  version)
+    echo "vps-init $VI_VERSION"
+    ;;
+  help|"")
+    usage
+    ;;
+  *)
+    vi_err "unknown command: $cmd"
+    echo >&2
+    usage >&2
+    exit 2
+    ;;
+esac
